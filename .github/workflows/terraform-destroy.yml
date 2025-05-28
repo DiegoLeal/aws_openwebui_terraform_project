@@ -1,13 +1,6 @@
 name: Terraform AWS Destroy # Nome do workflow para destruição de recursos
 
-on:
-  workflow_dispatch: # Permite acionar o workflow manualmente
-    # Você pode adicionar inputs aqui se precisar de confirmação ou parâmetros
-    # inputs:
-    #   confirm_destroy:
-    #     description: 'Type "destroy" to confirm resource destruction'
-    #     required: true
-    #     type: string
+on: workflow_dispatch
 
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

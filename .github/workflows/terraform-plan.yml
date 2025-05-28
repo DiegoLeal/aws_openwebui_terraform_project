@@ -1,11 +1,7 @@
 # .github/workflows/terraform-plan.yml
 name: Terraform AWS Plan # Nome do workflow atualizado para refletir o foco no plano
 
-on:
-  push: # Aciona o workflow em qualquer push para o repositório
-    branches:
-      - main # Opcional: você pode especificar branches aqui, como 'main' ou 'develop'
-  workflow_dispatch: # Permite acionar o workflow manualmente
+on: push
 
 jobs:
   terraform_plan: # Nome do job atualizado

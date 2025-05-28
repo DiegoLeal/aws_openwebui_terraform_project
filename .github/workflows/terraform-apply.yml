@@ -1,11 +1,7 @@
 # .github/workflows/terraform.yml
 name: Terraform AWS CI/CD
 
-on:
-  push:
-    branches:
-      - main # Aciona o workflow em pushes para a branch 'main'
-  workflow_dispatch: # Permite acionar o workflow manualmente
+on: workflow_dispatch
 
 jobs:
   terraform:
