@@ -1,6 +1,4 @@
-# .github/workflows/terraform-plan.yml
-name: Terraform AWS Plan # Nome do workflow atualizado para refletir o foco no plano
-
+name: Terraform AWS Plan 
 on: push
 
 jobs:
@@ -15,22 +13,21 @@ jobs:
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      TF_VAR_aws_pub_key: ${{ secrets.aws_pub_key }} # Variável de ambiente para a chave pública AWS
+      TF_VAR_aws_pub_key: ${{ secrets.aws_pub_key }}
+      TF_LOG: TRACE
+      TF_LOG_PATH: tf_trace.log     
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4 # Faz o checkout do seu repositório (atualizado para v4)
-
+        uses: actions/checkout@v4 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3 # Configura o Terraform CLI
-        with:
-          terraform_version: 1.x.x # Use a versão do Terraform que você preferir (ex: 1.5.7)
+        uses: hashicorp/setup-terraform@v3 
 
       - name: Terraform Init
-        run: terraform init # Inicializa o diretório de trabalho do Terraform
+        run: terraform init 
 
       - name: Terraform Validate
-        run: terraform validate # Valida a sintaxe dos arquivos Terraform
+        run: terraform validate 
 
-      - name: Terraform Plan # Etapa para gerar o plano de execução do Terraform
-        run: terraform plan -no-color -v=trace
+      - name: Terraform Plan 
+        run: terraform plan 

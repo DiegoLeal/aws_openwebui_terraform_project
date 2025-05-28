@@ -1,4 +1,4 @@
-name: Terraform AWS Destroy # Nome do workflow para destruição de recursos
+name: Terraform AWS Destroy 
 
 on: workflow_dispatch
 
