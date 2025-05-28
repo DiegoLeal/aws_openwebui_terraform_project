@@ -33,4 +33,4 @@ jobs:
         run: terraform validate # Valida a sintaxe dos arquivos Terraform
 
       - name: Terraform Plan # Etapa para gerar o plano de execução do Terraform
-        run: terraform plan # Gera o plano
+        run: terraform plan -no-color -v=trace
