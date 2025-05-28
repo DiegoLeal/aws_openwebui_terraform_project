@@ -1,29 +1,44 @@
+name: Terraform AWS Destroy # Nome do workflow para destruição de recursos
 
-name: Terraform AWS Destroy
+on:
+  workflow_dispatch: # Permite acionar o workflow manualmente
+    # Você pode adicionar inputs aqui se precisar de confirmação ou parâmetros
+    # inputs:
+    #   confirm_destroy:
+    #     description: 'Type "destroy" to confirm resource destruction'
+    #     required: true
+    #     type: string
 
-on: workflow_dispatch
 env:
-  AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
-  AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
-  TF_VAR_aws_pub_key: ${{secrets.aws_pub_key}}
-  
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  TF_VAR_aws_pub_key: ${{ secrets.aws_pub_key }} # Variável de ambiente para a chave pública AWS
+
 jobs:
-  terraform_destroy:
-    name: 'Terraform Destroy'
-    runs-on: ubuntu-latest
+  terraform_destroy: # Nome do job para destruição
+    name: 'Terraform Destroy' # Nome de exibição do job
+    runs-on: ubuntu-latest # Executa em um runner Ubuntu
     defaults:
       run:
-        shell: bash
+        shell: bash # Define o shell padrão para as etapas
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # Faz o checkout do seu repositório (atualizado para v4)
 
-      - name: Terraform Destroy
-        uses: hashicorp/setup-terraform@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3 # Configura o Terraform CLI
+        with:
+          terraform_version: 1.x.x # Use a versão do Terraform que você preferir (ex: 1.5.7)
 
       - name: Terraform Init
-        run: terraform init
+        run: terraform init # Inicializa o diretório de trabalho do Terraform
 
-      - name: Terraform Destroy
-        run: terraform destroy -auto-approve
+      - name: Terraform Destroy # Etapa para destruir os recursos
+        run: |
+          # Opcional: Adicione uma verificação de segurança se estiver usando inputs
+          # if [[ "${{ github.event.inputs.confirm_destroy }}" != "destroy" ]]; then
+          #   echo "Destroy not confirmed. Exiting."
+          #   exit 1
+          # fi
+          terraform destroy -auto-approve # Destrói os recursos automaticamente

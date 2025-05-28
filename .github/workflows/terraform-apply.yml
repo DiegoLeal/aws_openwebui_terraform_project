@@ -1,29 +1,48 @@
+# .github/workflows/terraform.yml
+name: Terraform AWS CI/CD
 
-name: Terraform AWS Apply
+on:
+  push:
+    branches:
+      - main # Aciona o workflow em pushes para a branch 'main'
+  workflow_dispatch: # Permite acionar o workflow manualmente
 
-on: workflow_dispatch
-env:
-  AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
-  AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
-  TF_VAR_aws_pub_key: ${{secrets.aws_pub_key}}
-  
 jobs:
-  terraform_apply:
+  terraform:
     name: 'Terraform Apply'
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
+    runs-on: ubuntu-latest # Executa em um runner Ubuntu
+
+    # Define as variáveis de ambiente para as credenciais da AWS
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      # Se você estiver usando a variável TF_VAR_aws_pub_key, mantenha-a aqui
+      TF_VAR_aws_pub_key: ${{ secrets.aws_pub_key }}
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # Faz o checkout do seu repositório
 
-      - name: Terraform Apply
-        uses: hashicorp/setup-terraform@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3 # Configura o Terraform CLI (apenas uma vez)
+        with:
+          terraform_version: 1.x.x # Use a versão do Terraform que você preferir (ex: 1.5.7)
 
       - name: Terraform Init
-        run: terraform init
+        id: init
+        run: terraform init # Inicializa o diretório de trabalho do Terraform
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate # Valida a sintaxe dos arquivos Terraform
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color # Gera um plano de execução do Terraform
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve
+        id: apply
+        # Executa o 'terraform apply' se o push for na branch 'main' ou se for um acionamento manual
+        # Isso evita deployments acidentais em outras branches
+        if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+        run: terraform apply -auto-approve # Aplica as mudanças automaticamente
