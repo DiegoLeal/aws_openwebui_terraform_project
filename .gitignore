@@ -1,0 +1,16 @@
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars*
+./idea
+.idea
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+aws-key.pem*
+aws2-key*
+key-aws*
+*.terraform.pem.*
