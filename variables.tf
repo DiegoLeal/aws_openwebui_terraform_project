@@ -38,5 +38,5 @@ variable "subnet_id" {
 variable "bucket_name" {
   description = "Nome único globalmente para o bucket S3."
   type        = string
-  default     = "open-webUI-terraform-bucket-pdf-llms" # SUBSTITUA POR UM NOME ÚNICO GLOBALMENTE
+  default     = "open-webui-tf-bucket-pdfs" # SUBSTITUA POR UM NOME ÚNICO GLOBALMENTE
 }

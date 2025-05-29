@@ -40,8 +40,8 @@ jobs:
       - name: Terraform Plan
         run: terraform plan -out=tfplan # Salva o plano para usar no apply (boa prática)
 
-      - name: Terraform Apply # *** NOVA ETAPA OU DESCOMENTAR ESTA LINHA ***
-        run: terraform apply -auto-approve tfplan # Aplica o plano salvo
+#      - name: Terraform Apply # *** NOVA ETAPA OU DESCOMENTAR ESTA LINHA ***
+#        run: terraform apply -auto-approve tfplan # Aplica o plano salvo
         # Note: -auto-approve é necessário para aplicar sem interação manual.
         # Use com cautela em ambientes de produção ou adicione um passo de aprovação manual.
 
@@ -58,7 +58,7 @@ jobs:
         # CORRIGIDO: O nome do output agora corresponde ao seu outputs.tf
         run: echo "S3_BUCKET_NAME=$(terraform output -raw s3_bucket_name_output)" >> "$GITHUB_OUTPUT"
         working-directory: .
-        
+
       - name: Upload AWS CLI PDF to S3
         run: |
           PDF_FILE_PATH="./docs/AWS Command Line Interface.pdf"
