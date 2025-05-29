@@ -24,19 +24,19 @@ variable "key_name" {
 variable "vpc_id" {
   description = "ID da VPC onde os recursos serão criados."
   type        = string
-  default     = "vpc-035f94c6ec27ed3ee" # SUBSTITUA PELO ID DA SUA VPC EXISTENTE
+  default     = "vpc-035f94c6ec27ed3ee" 
 }
 
 # ID da Subnet
 variable "subnet_id" {
   description = "ID da Subnet onde as instâncias EC2 serão lançadas."
   type        = string
-  default     = "subnet-012e39ff86aa56847" # SUBSTITUA PELO ID DA SUA SUBNET EXISTENTE
+  default     = "subnet-012e39ff86aa56847" 
 }
 
 # Nome do Bucket S3
 variable "bucket_name" {
   description = "Nome único globalmente para o bucket S3."
   type        = string
-  default     = "open-webui-tf-bucket-pdfs" # SUBSTITUA POR UM NOME ÚNICO GLOBALMENTE
+  default     = "open-webui-tf-bucket-pdfs" 
 }
