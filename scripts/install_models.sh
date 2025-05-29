@@ -28,9 +28,9 @@ services:
     restart: unless-stopped
     entrypoint: >
       sh -c "
-        ollama serve & 
-        sleep 5 && 
-        ollama pull llama3:8b && 
+        ollama serve &
+        sleep 5 &&
+        ollama pull llama3:8b &&
         tail -f /dev/null
       "
 volumes:

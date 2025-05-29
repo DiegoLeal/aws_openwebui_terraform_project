@@ -11,15 +11,13 @@ resource "aws_security_group" "web_sg" {
   description = "Allow SSH and HTTP traffic"
   vpc_id      = var.vpc_id
 
-  # Regra para SSH (Porta 22)
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Acesso de qualquer IP (em ambiente de produção, restrinja!)
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Regra para HTTP (Porta 80) - se suas máquinas forem servir algo na web
   ingress {
     from_port   = 80
     to_port     = 80
@@ -27,46 +25,59 @@ resource "aws_security_group" "web_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Regra de saída (permite toda a comunicação para fora)
+  # Adicione a porta 11434 para o Ollama
+  ingress {
+    from_port   = 11434
+    to_port     = 11434
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
-    protocol    = "-1" # Todos os protocolos
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
-# Primeira instância Ubuntu
+# Primeira instância Ubuntu (para Ollama Models)
 resource "aws_instance" "instance_1" {
   ami                    = var.ami_id
-  instance_type          = "t2.micro" # Free Tier
-  key_name               = var.key_name # Certifique-se de que sua chave SSH existe na AWS
-  vpc_security_group_ids = [aws_security_group.web_sg.id]
-  subnet_id              = var.subnet_id
-
-  tags = {
-    Name = "Ubuntu-Instance-1"
-  }
-}
-
-# Segunda instância Ubuntu
-resource "aws_instance" "instance_2" {
-  ami                    = var.ami_id
-  instance_type          = "t2.micro" # Free Tier
+  instance_type          = "t2.micro"
   key_name               = var.key_name
   vpc_security_group_ids = [aws_security_group.web_sg.id]
   subnet_id              = var.subnet_id
 
+  # Adiciona o script de user_data para instalar o Ollama e baixar o modelo
+  user_data = file("${path.module}/scripts/install_ollama_models.sh")
+
   tags = {
-    Name = "Ubuntu-Instance-2"
+    Name = "Ollama-Models-Instance"
+  }
+}
+
+# Segunda instância Ubuntu (para Open WebUI)
+resource "aws_instance" "instance_2" {
+  ami                    = var.ami_id
+  instance_type          = "t2.micro"
+  key_name               = var.key_name
+  vpc_security_group_ids = [aws_security_group.web_sg.id]
+  subnet_id              = var.subnet_id
+
+  # Adiciona o script de user_data para instalar o Open WebUI
+  user_data = file("${path.module}/scripts/install_open_webui.sh")
+
+  tags = {
+    Name = "OpenWebUI-Instance"
   }
 }
 
 # --- Bucket S3 ---
 
-resource "aws_s3_bucket" "open_webui_terraform_bucket" { # Renomeado para seguir convenções do Terraform (underscore)
-  bucket        = var.bucket_name # Use uma variável para o nome do bucket
-  force_destroy = true            # Permite a destruição do bucket mesmo com objetos
+resource "aws_s3_bucket" "open_webui_terraform_bucket" {
+  bucket        = var.bucket_name
+  force_destroy = true
 
   tags = {
     Name        = "open-webUI-terraform"
