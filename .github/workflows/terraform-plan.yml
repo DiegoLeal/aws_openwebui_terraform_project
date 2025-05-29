@@ -1,13 +1,9 @@
-name: Terraform AWS Deploy and Upload # Nome do workflow para refletir o que ele faz
-
-on:
-  push:
-    branches:
-      - main
+name: Terraform AWS Plan
+on: push
 
 jobs:
-  deploy_and_upload: # Nome do job
-    name: 'Deploy Infra and Upload PDF'
+  terraform_plan:
+    name: 'Terraform Plan'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -24,7 +20,20 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # Garante o clone completo
+
+      # --- INÍCIO DAS ETAPAS DE DEPURACÃO OBRIGATÓRIAS ---
+      - name: DEBUG - Conteúdo do Diretório Raiz
+        run: ls -la
+
+      - name: DEBUG - Conteúdo da Pasta scripts/
+        run: ls -la scripts/
+
+      - name: DEBUG - Verificar Existência dos Arquivos de Script
+        run: |
+          find . -name "install_ollama_models.sh"
+          find . -name "install_open_webui.sh"
+      # --- FIM DAS ETAPAS DE DEPURACÃO OBRIGATÓRIAS ---
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -38,39 +47,4 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan
-        run: terraform plan -out=tfplan # Salva o plano para usar no apply (boa prática)
-
-      - name: Terraform Apply # *** NOVA ETAPA OU DESCOMENTAR ESTA LINHA ***
-        run: terraform apply -auto-approve tfplan # Aplica o plano salvo
-        # Note: -auto-approve é necessário para aplicar sem interação manual.
-        # Use com cautela em ambientes de produção ou adicione um passo de aprovação manual.
-
-      # --- Etapas para Upload de PDFs ---
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1 # Ou a sua variável/secret de região
-
-      - name: Get S3 Bucket Name from Terraform Output
-        id: get_bucket_name # Define um ID para referenciar o output desta etapa
-        # CORRIGIDO: O nome do output agora corresponde ao seu outputs.tf
-        run: echo "S3_BUCKET_NAME=$(terraform output -raw s3_bucket_name_output)" >> "$GITHUB_OUTPUT"
-        working-directory: .
-
-      - name: Upload AWS CLI PDF to S3
-        run: |
-          PDF_FILE_PATH="./docs/AWS Command Line Interface.pdf"
-          BUCKET_NAME="${{ steps.get_bucket_name.outputs.S3_BUCKET_NAME }}"
-          S3_DEST_KEY="docs/AWS_Command_Line_Interface.pdf" # ou "docs/AWS Command Line Interface.pdf"
-
-          echo "Iniciando upload de $PDF_FILE_PATH para s3://$BUCKET_NAME/$S3_DEST_KEY"
-
-          if [ -f "$PDF_FILE_PATH" ]; then
-            aws s3 cp "$PDF_FILE_PATH" "s3://$BUCKET_NAME/$S3_DEST_KEY" # --acl public-read se necessário
-            echo "PDF '$PDF_FILE_PATH' enviado com sucesso para s3://$BUCKET_NAME/$S3_DEST_KEY"
-          else
-            echo "Arquivo PDF '$PDF_FILE_PATH' não encontrado. Pulando o upload."
-            exit 1
-          fi
+        run: terraform plan
