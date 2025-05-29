@@ -1,13 +1,13 @@
-name: Terraform AWS Plan
+name: Terraform AWS Deploy and Upload # Nome do workflow para refletir o que ele faz
 
 on:
   push:
     branches:
-      - main # Dispara o workflow quando há um push na branch 'main'
+      - main
 
 jobs:
-  terraform_plan:
-    name: 'Terraform Plan/Apply'
+  deploy_and_upload: # Nome do job
+    name: 'Deploy Infra and Upload PDF'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -38,41 +38,39 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan
-        run: terraform plan
-        # Se você tiver um 'terraform apply -auto-approve' aqui, a criação do bucket
-        # ocorrerá antes do upload.
+        run: terraform plan -out=tfplan # Salva o plano para usar no apply (boa prática)
 
-      # --- ETAPAS PARA UPLOAD DO PDF ---
+      - name: Terraform Apply # *** NOVA ETAPA OU DESCOMENTAR ESTA LINHA ***
+        run: terraform apply -auto-approve tfplan # Aplica o plano salvo
+        # Note: -auto-approve é necessário para aplicar sem interação manual.
+        # Use com cautela em ambientes de produção ou adicione um passo de aprovação manual.
 
+      # --- Etapas para Upload de PDFs ---
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1 # Certifique-se de que esta é a região correta do seu bucket S3
+          aws-region: us-east-1 # Ou a sua variável/secret de região
 
       - name: Get S3 Bucket Name from Terraform Output
-        id: get_bucket_name
-        run: echo "S3_BUCKET_NAME=$(terraform output -raw open_webui_s3_bucket_name)" >> "$GITHUB_OUTPUT"
+        id: get_bucket_name # Define um ID para referenciar o output desta etapa
+        # CORRIGIDO: O nome do output agora corresponde ao seu outputs.tf
+        run: echo "S3_BUCKET_NAME=$(terraform output -raw s3_bucket_name_output)" >> "$GITHUB_OUTPUT"
         working-directory: .
-
-      # --- AQUI ESTÁ A MUDANÇA: APONTANDO PARA O ARQUIVO ESPECÍFICO ---
+        
       - name: Upload AWS CLI PDF to S3
         run: |
-          PDF_FILE_PATH="./docs/AWS Command Line Interface.pdf" # Caminho do arquivo específico
+          PDF_FILE_PATH="./docs/AWS Command Line Interface.pdf"
           BUCKET_NAME="${{ steps.get_bucket_name.outputs.S3_BUCKET_NAME }}"
-          S3_DEST_KEY="docs/AWS_Command_Line_Interface.pdf" # Caminho e nome do arquivo no S3.
-                                                          # Ajustei o nome para evitar espaços e caracteres especiais
-                                                          # no objeto S3, o que é uma boa prática.
-                                                          # Você pode manter o nome original se preferir,
-                                                          # mas pode causar problemas em algumas ferramentas.
+          S3_DEST_KEY="docs/AWS_Command_Line_Interface.pdf" # ou "docs/AWS Command Line Interface.pdf"
 
           echo "Iniciando upload de $PDF_FILE_PATH para s3://$BUCKET_NAME/$S3_DEST_KEY"
 
-          if [ -f "$PDF_FILE_PATH" ]; then # Verifica se o arquivo existe (usando -f para arquivo)
-            aws s3 cp "$PDF_FILE_PATH" "s3://$BUCKET_NAME/$S3_DEST_KEY" --acl public-read # Opcional: --acl public-read para acesso público
-            echo "PDF 'AWS Command Line Interface.pdf' enviado com sucesso para s3://$BUCKET_NAME/$S3_DEST_KEY"
+          if [ -f "$PDF_FILE_PATH" ]; then
+            aws s3 cp "$PDF_FILE_PATH" "s3://$BUCKET_NAME/$S3_DEST_KEY" # --acl public-read se necessário
+            echo "PDF '$PDF_FILE_PATH' enviado com sucesso para s3://$BUCKET_NAME/$S3_DEST_KEY"
           else
             echo "Arquivo PDF '$PDF_FILE_PATH' não encontrado. Pulando o upload."
-            exit 1 # Opcional: Falhar o job se o arquivo não existir
+            exit 1
           fi
