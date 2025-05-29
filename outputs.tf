@@ -1,5 +1,4 @@
-# --- Output (Opcional, mas útil) ---
-# Para ver os IPs públicos das instâncias após o apply
+# --- Outputs dos IPs públicos das instâncias ---
 
 output "instance_1_public_ip" {
   description = "IP público da primeira instância EC2"
@@ -11,7 +10,9 @@ output "instance_2_public_ip" {
   value       = aws_instance.instance_2.public_ip
 }
 
-output "s3_bucket_name_output" { # RENOMEADO para ser único e claro
+# --- Output do nome do bucket S3 ---
+
+output "s3_bucket_name_output" { # Renomeado para ser mais claro e evitar conflitos
   description = "Nome do bucket S3 criado"
-  value       = aws_s3_bucket.open-webUI-terraform.id # Referenciando o novo bucket
+  value       = aws_s3_bucket.open_webui_terraform_bucket.id # Referencia o novo nome do recurso
 }

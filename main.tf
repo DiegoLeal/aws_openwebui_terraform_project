@@ -64,7 +64,7 @@ resource "aws_instance" "instance_2" {
 
 # --- Bucket S3 ---
 
-resource "aws_s3_bucket" "open-webUI-terraform" {
+resource "aws_s3_bucket" "open_webui_terraform_bucket" { # Renomeado para seguir convenções do Terraform (underscore)
   bucket        = var.bucket_name # Use uma variável para o nome do bucket
   force_destroy = true            # Permite a destruição do bucket mesmo com objetos
 
@@ -72,22 +72,4 @@ resource "aws_s3_bucket" "open-webUI-terraform" {
     Name        = "open-webUI-terraform"
     Environment = "Dev"
   }
-}
-
-# --- Output (Opcional, mas útil) ---
-# Para ver os IPs públicos das instâncias após o apply
-
-output "instance_1_public_ip" {
-  description = "IP público da primeira instância EC2"
-  value       = aws_instance.instance_1.public_ip
-}
-
-output "instance_2_public_ip" {
-  description = "IP público da segunda instância EC2"
-  value       = aws_instance.instance_2.public_ip
-}
-
-output "s3_bucket_name" {
-  description = "Nome do bucket S3 criado"
-  value       = aws_s3_bucket.open-webUI-terraform.id
 }
