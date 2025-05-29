@@ -50,7 +50,8 @@ resource "aws_instance" "instance_1" {
   subnet_id              = var.subnet_id
 
   # Adiciona o script de user_data para instalar o Ollama e baixar o modelo
-  user_data = file("${path.module}/scripts/install_ollama_models.sh")
+  # CORRIGIDO: Nome do arquivo agora é 'install_models.sh'
+  user_data = file("${path.module}/scripts/install_models.sh")
 
   tags = {
     Name = "Ollama-Models-Instance"
@@ -66,6 +67,7 @@ resource "aws_instance" "instance_2" {
   subnet_id              = var.subnet_id
 
   # Adiciona o script de user_data para instalar o Open WebUI
+  # CORRIGIDO: Nome do arquivo agora é 'install_open_webui.sh'
   user_data = file("${path.module}/scripts/install_open_webui.sh")
 
   tags = {
