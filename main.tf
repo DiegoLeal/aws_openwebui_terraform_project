@@ -191,10 +191,6 @@ resource "aws_lambda_permission" "allow_cloudwatch_to_call_autostop_lambda" {
 }
 
 # --- Alarme de Faturamento do CloudWatch ---
-# Este alarme é um exemplo para ativar a função Lambda.
-# IMPORTANTE: Você precisa ter o MONITORAMENTO DE CUSTOS E USOS ativado na sua conta AWS
-# para que as métricas de faturamento estejam disponíveis.
-# Este alarme é configurado para disparar quando o custo estimado ultrapassar 1 dólar (no período de 6 horas)
 resource "aws_cloudwatch_metric_alarm" "billing_alarm" {
   alarm_name          = "HighBillingAlarm"
   comparison_operator = "GreaterThanThreshold"
@@ -204,12 +200,13 @@ resource "aws_cloudwatch_metric_alarm" "billing_alarm" {
   period              = 21600 # 6 horas em segundos (6 * 60 * 60)
   statistic           = "Maximum"
   threshold           = 1.0 # Alarme dispara se o custo estimado ultrapassar $1.00
-  unit                = "Dollars"
+  # CORRIGIDO: A unidade para EstimatedCharges deve ser "None"
+  unit                = "None" 
 
   alarm_actions = [
     aws_lambda_function.autostop_instances.arn # Ação a ser tomada: invocar a função Lambda
   ]
-  ok_actions = [] # Você pode adicionar ações aqui se o alarme retornar ao estado OK
+  ok_actions = []
 
   tags = {
     Name = "HighBillingAlarm"
