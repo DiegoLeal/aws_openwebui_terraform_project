@@ -40,7 +40,7 @@ resource "aws_s3_bucket" "pdf_bucket" {
     Name        = "PDFStorage"
     Environment = "Dev"
     # (opcional, só se quiser desligar algum recurso via tag)
-    # AutoStop    = "true"
+    AutoStop    = "true"
   }
 }
 
