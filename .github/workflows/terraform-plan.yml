@@ -20,12 +20,9 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          # --- AQUI ESTÁ A MUDANÇA MAIS IMPORTANTE ---
-          # Garante que o clone seja completo, trazendo todas as pastas e arquivos
-          fetch-depth: 0
+          fetch-depth: 0 # Esta linha é crucial para o clone completo
 
-      # --- ETAPAS DE DEBURAÇÃO (MUITO ÚTEIS SE O ERRO PERSISTIR) ---
-      # Estas etapas vão listar o conteúdo do diretório para você ver nos logs do GitHub Actions
+      # --- INÍCIO DAS ETAPAS DE DEPURACÃO ---
       - name: DEBUG - Listar Conteúdo do Diretório Raiz
         run: |
           echo "Conteúdo do diretório de trabalho (.):"
@@ -40,18 +37,17 @@ jobs:
 
       - name: DEBUG - Verificar Existência dos Arquivos de Script
         run: |
-          echo "Verificando 'install_models.sh':"
-          find . -name "install_models.sh"
+          echo "Verificando 'install_ollama_models.sh':"
+          find . -name "install_ollama_models.sh"
           echo "Verificando 'install_open_webui.sh':"
           find . -name "install_open_webui.sh"
           echo ""
-      # --- FIM DAS ETAPAS DE DEBURAÇÃO ---
+      # --- FIM DAS ETAPAS DE DEPURACÃO ---
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          # É uma boa prática fixar a versão mais recente e estável do Terraform CLI
-          terraform_version: 1.8.0 # Ou a versão que você confirmou estar funcionando localmente
+          terraform_version: 1.8.0
 
       - name: Terraform Init
         run: terraform init
