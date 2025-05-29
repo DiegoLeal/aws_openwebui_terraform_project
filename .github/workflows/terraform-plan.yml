@@ -1,33 +1,63 @@
-name: Terraform AWS Plan 
+name: Terraform AWS Plan
 on: push
 
 jobs:
-  terraform_plan: # Nome do job atualizado
-    name: 'Terraform Plan' # Nome de exibição do job
-    runs-on: ubuntu-latest # Executa em um runner Ubuntu
+  terraform_plan:
+    name: 'Terraform Plan'
+    runs-on: ubuntu-latest
     defaults:
       run:
-        shell: bash # Define o shell padrão para as etapas
+        shell: bash
 
-    # Define as variáveis de ambiente para as credenciais da AWS
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       TF_VAR_aws_pub_key: ${{ secrets.aws_pub_key }}
-      TF_LOG: TRACE
-      TF_LOG_PATH: tf_trace.log     
+      TF_LOG: TRACE # Para depuração avançada, se precisar
+      TF_LOG_PATH: tf_trace.log
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4 
+        uses: actions/checkout@v4
+        with:
+          # --- AQUI ESTÁ A MUDANÇA MAIS IMPORTANTE ---
+          # Garante que o clone seja completo, trazendo todas as pastas e arquivos
+          fetch-depth: 0
+
+      # --- ETAPAS DE DEBURAÇÃO (MUITO ÚTEIS SE O ERRO PERSISTIR) ---
+      # Estas etapas vão listar o conteúdo do diretório para você ver nos logs do GitHub Actions
+      - name: DEBUG - Listar Conteúdo do Diretório Raiz
+        run: |
+          echo "Conteúdo do diretório de trabalho (.):"
+          ls -la
+          echo ""
+
+      - name: DEBUG - Listar Conteúdo da Pasta scripts/
+        run: |
+          echo "Conteúdo da pasta scripts/:"
+          ls -la scripts/
+          echo ""
+
+      - name: DEBUG - Verificar Existência dos Arquivos de Script
+        run: |
+          echo "Verificando 'install_models.sh':"
+          find . -name "install_models.sh"
+          echo "Verificando 'install_open_webui.sh':"
+          find . -name "install_open_webui.sh"
+          echo ""
+      # --- FIM DAS ETAPAS DE DEBURAÇÃO ---
+
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3 
+        uses: hashicorp/setup-terraform@v3
+        with:
+          # É uma boa prática fixar a versão mais recente e estável do Terraform CLI
+          terraform_version: 1.8.0 # Ou a versão que você confirmou estar funcionando localmente
 
       - name: Terraform Init
-        run: terraform init 
+        run: terraform init
 
       - name: Terraform Validate
-        run: terraform validate 
+        run: terraform validate
 
-      - name: Terraform Plan 
-        run: terraform plan 
+      - name: Terraform Plan
+        run: terraform plan
