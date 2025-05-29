@@ -4,6 +4,7 @@
 *.tfvars*
 ./idea
 .idea
+./aws
 crash.log
 override.tf
 override.tf.json
