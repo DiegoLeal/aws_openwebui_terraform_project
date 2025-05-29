@@ -1,36 +1,42 @@
+# Região AWS
 variable "aws_region" {
+  description = "Região AWS para provisionar os recursos."
   type        = string
-  description = ""
   default     = "us-east-1"
 }
 
+# AMI ID (Ubuntu 22.04 LTS para us-east-1, verifique se ainda é a mais recente)
 variable "ami_id" {
-  description = "AMI ID to be used for the instance"
+  description = "ID da AMI para as instâncias EC2 (Ubuntu)."
   type        = string
-  default     = "ami-084568db4383264d4"
+  default     = "ami-084568db4383264d4" # Certifique-se de que esta AMI está disponível na us-east-1
 }
 
-variable "instance_type" {
-  type        = string
-  description = ""
-  default     = "t2.micro"
-}
-
+# Nome da chave SSH
 variable "key_name" {
-  description = "Key pair name for SSH"
-  default     = "terraform"
-}
-
-variable "subnet_id" {
-  description = "Subnet ID"
-}
-
-variable "vpc_id" {
-  description = "VPC ID"
-}
-
-variable "bucket_name" {
-  description = "Name of the S3 bucket"
+  description = "Nome do par de chaves SSH existente na AWS para acesso às instâncias."
   type        = string
-  default     = "bucket-openwebui"
+  # Por questões de segurança, remova o default em produção e force o usuário a informá-lo
+  default     = "aws-key" # SUBSTITUA PELO NOME DA SUA CHAVE SSH
+}
+
+# ID da VPC
+variable "vpc_id" {
+  description = "ID da VPC onde os recursos serão criados."
+  type        = string
+  default     = "vpc-035f94c6ec27ed3ee" # SUBSTITUA PELO ID DA SUA VPC EXISTENTE
+}
+
+# ID da Subnet
+variable "subnet_id" {
+  description = "ID da Subnet onde as instâncias EC2 serão lançadas."
+  type        = string
+  default     = "subnet-012e39ff86aa56847" # SUBSTITUA PELO ID DA SUA SUBNET EXISTENTE
+}
+
+# Nome do Bucket S3
+variable "bucket_name" {
+  description = "Nome único globalmente para o bucket S3."
+  type        = string
+  default     = "open-webUI-terraform" # SUBSTITUA POR UM NOME ÚNICO GLOBALMENTE
 }

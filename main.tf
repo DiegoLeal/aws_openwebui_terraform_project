@@ -1,62 +1,25 @@
+# Define o provedor AWS e a região
 provider "aws" {
   region = var.aws_region
 }
 
-resource "aws_instance" "open_webui" {
-  ami                    = var.ami_id
-  instance_type          = var.instance_type
-  key_name               = var.key_name
-  vpc_security_group_ids = [aws_security_group.sg.id]
-  subnet_id              = var.subnet_id
+# --- Máquinas EC2 ---
 
-  user_data = file("scripts/install_open_webui.sh")
-
-  tags = {
-    Name      = "OpenWebUI"
-    AutoStop  = "true"
-  }
-}
-
-resource "aws_instance" "ollama_models" {
-  ami                    = var.ami_id
-  instance_type          = var.instance_type
-  key_name               = var.key_name
-  vpc_security_group_ids = [aws_security_group.sg.id]
-  subnet_id              = var.subnet_id
-
-  user_data = file("scripts/install_models.sh")
-
-  tags = {
-    Name      = "LLM_Models"
-    AutoStop  = "true"
-  }
-}
-
-resource "aws_s3_bucket" "pdf_bucket" {
-  bucket         = var.bucket_name
-  force_destroy  = true
-
-  tags = {
-    Name        = "PDFStorage"
-    Environment = "Dev"
-    # (opcional, só se quiser desligar algum recurso via tag)
-    AutoStop    = "true"
-  }
-}
-
-
-resource "aws_security_group" "sg" {
-  name        = "openwebui_sg"
-  description = "Allow necessary ports"
+# Security Group para permitir SSH e HTTP (se necessário)
+resource "aws_security_group" "web_sg" {
+  name        = "web-instance-sg"
+  description = "Allow SSH and HTTP traffic"
   vpc_id      = var.vpc_id
 
+  # Regra para SSH (Porta 22)
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"] # Acesso de qualquer IP (em ambiente de produção, restrinja!)
   }
 
+  # Regra para HTTP (Porta 80) - se suas máquinas forem servir algo na web
   ingress {
     from_port   = 80
     to_port     = 80
@@ -64,112 +27,67 @@ resource "aws_security_group" "sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  ingress {
-    from_port   = 11434
-    to_port     = 11435
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
+  # Regra de saída (permite toda a comunicação para fora)
   egress {
     from_port   = 0
     to_port     = 0
-    protocol    = "-1"
+    protocol    = "-1" # Todos os protocolos
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
-resource "aws_sns_topic" "billing_alerts" {
-  name = "billing-alerts-topic"
-}
+# Primeira instância Ubuntu
+resource "aws_instance" "instance_1" {
+  ami                    = var.ami_id
+  instance_type          = "t2.micro" # Free Tier
+  key_name               = var.key_name # Certifique-se de que sua chave SSH existe na AWS
+  vpc_security_group_ids = [aws_security_group.web_sg.id]
+  subnet_id              = var.subnet_id
 
-resource "aws_sns_topic_subscription" "lambda_sub" {
-  topic_arn = aws_sns_topic.billing_alerts.arn
-  protocol  = "lambda"
-  endpoint  = aws_lambda_function.stop_instances.arn
-}
-
-resource "aws_cloudwatch_metric_alarm" "billing_alarm" {
-  alarm_name          = "BillingThresholdExceeded"
-  comparison_operator = "GreaterThanOrEqualToThreshold"
-  evaluation_periods  = "1"
-  metric_name         = "EstimatedCharges"
-  namespace           = "AWS/Billing"
-  period              = "21600"
-  statistic           = "Maximum"
-  threshold           = 1
-  alarm_description   = "Alerta quando o billing excede 1 dólar"
-  actions_enabled     = true
-  alarm_actions       = [aws_sns_topic.billing_alerts.arn]
-
-  dimensions = {
-    Currency = "USD"
+  tags = {
+    Name = "Ubuntu-Instance-1"
   }
 }
 
-resource "aws_iam_role" "lambda_exec" {
-  name = "lambda_stop_instances_role"
+# Segunda instância Ubuntu
+resource "aws_instance" "instance_2" {
+  ami                    = var.ami_id
+  instance_type          = "t2.micro" # Free Tier
+  key_name               = var.key_name
+  vpc_security_group_ids = [aws_security_group.web_sg.id]
+  subnet_id              = var.subnet_id
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [{
-      Action = "sts:AssumeRole",
-      Principal = {
-        Service = "lambda.amazonaws.com"
-      },
-      Effect = "Allow",
-      Sid    = ""
-    }]
-  })
+  tags = {
+    Name = "Ubuntu-Instance-2"
+  }
 }
 
-resource "aws_iam_role_policy" "lambda_policy" {
-  name = "lambda_stop_instances_policy"
-  role = aws_iam_role.lambda_exec.id
+# --- Bucket S3 ---
 
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Action = [
-          "ec2:DescribeInstances",
-          "ec2:StopInstances"
-        ],
-        Effect   = "Allow",
-        Resource = "*"
-      },
-      {
-        Action = [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents"
-        ],
-        Effect   = "Allow",
-        Resource = "*"
-      }
-    ]
-  })
+resource "aws_s3_bucket" "open-webUI-terraform" {
+  bucket        = var.bucket_name # Use uma variável para o nome do bucket
+  force_destroy = true            # Permite a destruição do bucket mesmo com objetos
+
+  tags = {
+    Name        = "open-webUI-terraform"
+    Environment = "Dev"
+  }
 }
 
-data "archive_file" "lambda_zip" {
-  type        = "zip"
-  source_file = "${path.module}/lambda/stop_instances.py"
-  output_path = "${path.module}/lambda/stop_instances.zip"
+# --- Output (Opcional, mas útil) ---
+# Para ver os IPs públicos das instâncias após o apply
+
+output "instance_1_public_ip" {
+  description = "IP público da primeira instância EC2"
+  value       = aws_instance.instance_1.public_ip
 }
 
-resource "aws_lambda_function" "stop_instances" {
-  function_name = "stop_instances_on_billing"
-  role          = aws_iam_role.lambda_exec.arn
-  handler       = "stop_instances.lambda_handler"
-  runtime       = "python3.9"
-  filename      = data.archive_file.lambda_zip.output_path
-  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+output "instance_2_public_ip" {
+  description = "IP público da segunda instância EC2"
+  value       = aws_instance.instance_2.public_ip
 }
 
-resource "aws_lambda_permission" "allow_sns" {
-  statement_id  = "AllowExecutionFromSNS"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.stop_instances.function_name
-  principal     = "sns.amazonaws.com"
-  source_arn    = aws_sns_topic.billing_alerts.arn
+output "s3_bucket_name" {
+  description = "Nome do bucket S3 criado"
+  value       = aws_s3_bucket.open-webUI-terraform.id
 }
