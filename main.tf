@@ -8,6 +8,10 @@ resource "aws_security_group" "web_sg" {
   name        = "web-instance-sg"
   description = "Allow SSH and HTTP traffic"
   vpc_id      = var.vpc_id
+   
+    tags = {
+    Name = "terraform-sg"
+  }
 
   ingress {
     from_port   = 22
@@ -37,9 +41,9 @@ resource "aws_security_group" "web_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  lifecycle {
-    prevent_destroy = true
-  }
+  #lifecycle {
+    #prevent_destroy = false
+  #}
 }
 
 resource "aws_instance" "instance_1" {
@@ -53,6 +57,13 @@ resource "aws_instance" "instance_1" {
   tags = {
     Name     = "Ollama-Models-Instance"
     AutoStop = "true"
+  }
+
+  # NOVO: Aumentar o tamanho do volume raiz para a instância Ollama
+  root_block_device {
+    volume_size = 15 # Definir o tamanho do disco em GB (Ex: 30GB)
+    volume_type = "gp3" # Tipo de volume recomendado para melhor performance e custo
+    # delete_on_termination = true # Padrão é true, não precisa especificar se quiser manter o padrão
   }
 }
 
@@ -68,8 +79,17 @@ resource "aws_instance" "instance_2" {
     Name     = "OpenWebUI-Instance"
     AutoStop = "true"
   }
+
+  # NOVO: Aumentar o tamanho do volume raiz para a instância OpenWebUI
+  root_block_device {
+    volume_size = 15 # Definir o tamanho do disco em GB (Ex: 30GB)
+    volume_type = "gp3" # Tipo de volume recomendado para melhor performance e custo
+    # delete_on_termination = true # Padrão é true, não precisa especificar se quiser manter o padrão
+  }
 }
 
+# --- O restante do seu main.tf permanece o mesmo ---
+# ... (aws_s3_bucket, data "archive_file", aws_iam_role, etc.) ...
 # --- Bucket S3 ---
 
 resource "aws_s3_bucket" "open_webui_terraform_bucket" {
@@ -82,7 +102,7 @@ resource "aws_s3_bucket" "open_webui_terraform_bucket" {
   }
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 }
 
@@ -117,7 +137,7 @@ resource "aws_iam_role" "lambda_autostop_role" {
   }
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 }
 
@@ -151,7 +171,7 @@ resource "aws_iam_policy" "lambda_autostop_policy" {
   })
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 }
 
@@ -162,7 +182,7 @@ resource "aws_iam_role_policy_attachment" "lambda_autostop_role_policy_attach" {
   policy_arn = aws_iam_policy.lambda_autostop_policy.arn
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 }
 
@@ -184,7 +204,7 @@ resource "aws_lambda_function" "autostop_instances" {
   }
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 }
 
@@ -197,7 +217,7 @@ resource "aws_lambda_permission" "allow_cloudwatch_to_call_autostop_lambda" {
   principal     = "cloudwatch.amazonaws.com"
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 }
 
@@ -225,6 +245,6 @@ resource "aws_cloudwatch_metric_alarm" "billing_alarm" {
   }
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 }
