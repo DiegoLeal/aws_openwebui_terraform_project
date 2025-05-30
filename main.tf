@@ -48,7 +48,7 @@ resource "aws_security_group" "web_sg" {
 
 resource "aws_instance" "instance_1" {
   ami                    = var.ami_id
-  instance_type          = "t2.micro"
+  instance_type          = "t2.medium"
   key_name               = var.key_name
   vpc_security_group_ids = [aws_security_group.web_sg.id]
   subnet_id              = var.subnet_id
@@ -69,7 +69,7 @@ resource "aws_instance" "instance_1" {
 
 resource "aws_instance" "instance_2" {
   ami                    = var.ami_id
-  instance_type          = "t2.micro"
+  instance_type          = "t2.large"
   key_name               = var.key_name
   vpc_security_group_ids = [aws_security_group.web_sg.id]
   subnet_id              = var.subnet_id
