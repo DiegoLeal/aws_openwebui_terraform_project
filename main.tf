@@ -48,7 +48,7 @@ resource "aws_security_group" "web_sg" {
 
 resource "aws_instance" "instance_1" {
   ami                    = var.ami_id
-  instance_type          = "t2.medium"
+  instance_type          = "t3.2xlarge"
   key_name               = var.key_name
   vpc_security_group_ids = [aws_security_group.web_sg.id]
   subnet_id              = var.subnet_id
@@ -69,7 +69,7 @@ resource "aws_instance" "instance_1" {
 
 resource "aws_instance" "instance_2" {
   ami                    = var.ami_id
-  instance_type          = "t2.large"
+  instance_type          = "t3.large"
   key_name               = var.key_name
   vpc_security_group_ids = [aws_security_group.web_sg.id]
   subnet_id              = var.subnet_id
@@ -85,24 +85,6 @@ resource "aws_instance" "instance_2" {
     volume_size = 15 # Definir o tamanho do disco em GB (Ex: 30GB)
     volume_type = "gp3" # Tipo de volume recomendado para melhor performance e custo
     # delete_on_termination = true # Padrão é true, não precisa especificar se quiser manter o padrão
-  }
-}
-
-# --- O restante do seu main.tf permanece o mesmo ---
-# ... (aws_s3_bucket, data "archive_file", aws_iam_role, etc.) ...
-# --- Bucket S3 ---
-
-resource "aws_s3_bucket" "open_webui_terraform_bucket" {
-  bucket        = var.bucket_name
-  force_destroy = true
-
-  tags = {
-    Name        = "open-webUI-terraform"
-    Environment = "Dev"
-  }
-
-  lifecycle {
-    prevent_destroy = false
   }
 }
 

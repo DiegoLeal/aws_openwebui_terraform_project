@@ -20,7 +20,6 @@ sudo mkdir -p /opt/openwebui
 cd /opt/openwebui
 
 sudo cat > docker-compose.yml <<EOF
-version: '3'
 services:
   nginx:
     image: nginx:latest

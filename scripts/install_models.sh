@@ -20,7 +20,6 @@ sudo mkdir -p /opt/ollama_models
 cd /opt/ollama_models
 
 sudo cat > docker-compose.yml <<EOF
-version: '3'
 services:
   ollama:
     image: ollama/ollama

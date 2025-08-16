@@ -17,7 +17,7 @@ variable "key_name" {
   description = "Nome do par de chaves SSH existente na AWS para acesso às instâncias."
   type        = string
   # Por questões de segurança, remova o default em produção e force o usuário a informá-lo
-  default     = "aws-key" # SUBSTITUA PELO NOME DA SUA CHAVE SSH
+  default     = "openwebui-key" # SUBSTITUA PELO NOME DA SUA CHAVE SSH
 }
 
 # ID da VPC
@@ -31,12 +31,5 @@ variable "vpc_id" {
 variable "subnet_id" {
   description = "ID da Subnet onde as instâncias EC2 serão lançadas."
   type        = string
-  default     = "subnet-012e39ff86aa56847" 
-}
-
-# Nome do Bucket S3
-variable "bucket_name" {
-  description = "Nome único globalmente para o bucket S3."
-  type        = string
-  default     = "open-webui-tf-bucket-pdfs" 
+  default     = "subnet-03c46913eed7c93d8" 
 }
